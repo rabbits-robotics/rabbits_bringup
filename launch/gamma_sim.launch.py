@@ -8,8 +8,10 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.actions import (
+    DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler, Shutdown, TimerAction)
 from launch.conditions import IfCondition
+from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     Command, EqualsSubstitution, FindExecutable, LaunchConfiguration, PathJoinSubstitution)
@@ -52,6 +54,12 @@ def generate_launch_description():
         output='screen',
         parameters=[sim_config, {'link_path': LaunchConfiguration('link_path')}],
     )
+
+    # 偽ファームが終わったら（設定不足、pty の失敗、Ctrl-C）全体を落とす。bridge だけが残って別のエラーを出さないように
+    stop_on_fake_exit = RegisterEventHandler(OnProcessExit(
+        target_action=fake_node,
+        on_exit=[Shutdown(reason='gamma_fake_node exited')],
+    ))
 
     # 偽ファームがリンクを作ってから bridge を起動する
     bridge_node = TimerAction(
@@ -98,4 +106,5 @@ def generate_launch_description():
     )
 
     return LaunchDescription(
-        args + [fake_node, bridge_node, robot_state_publisher, rviz_node, gamepad, game_client])
+        args + [fake_node, stop_on_fake_exit, bridge_node, robot_state_publisher, rviz_node,
+                gamepad, game_client])
