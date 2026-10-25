@@ -34,4 +34,6 @@ ros2 launch rabbits_bringup gamma.launch.py device:=/dev/ttyTHS1 rviz:=true   # 
 
 `gamma_sim.launch.py` は偽ファームがリンクを作るのを待つため、robot_bridge を 1 秒遅らせて起動する。偽ファームを再起動したら launch 全体を再起動する（bridge だけの再起動は可）。
 
+rviz の表示設定（`rviz/gamma.rviz`）は launch が install 側のファイルを開くので、rviz で保存すると `install/rabbits_bringup/share/rabbits_bringup/rviz/gamma.rviz` に書かれる。残したいときは `src` 側へコピーしてコミットする。
+
 `gamma.repos`: gamma を動かすのに必要なパッケージ一覧（`vcs import src < gamma.repos`）。実機で動いた時点で `vcs export --exact` でコミットを固定する。
