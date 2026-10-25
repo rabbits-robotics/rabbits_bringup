@@ -37,7 +37,7 @@ Visualization Manager:
       Show Arrows: false
       Marker Scale: 0.3
   Global Options:
-    Fixed Frame: base_link
+    Fixed Frame: base_footprint
     Frame Rate: 30
     Background Color: 48; 48; 48
   Tools:
