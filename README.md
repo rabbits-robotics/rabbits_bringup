@@ -14,7 +14,7 @@
 ros2 launch rabbits_bringup gamma_sim.launch.py                          # gamepad + rviz
 ros2 launch rabbits_bringup gamma_sim.launch.py input:=game_client
 ros2 launch rabbits_bringup gamma_sim.launch.py rviz:=false input:=none   # 配管だけ。joint_states を echo して確認
-ros2 launch rabbits_bringup gamma_sim.launch.py lean_left_button:=13 lean_right_button:=14   # 背面ボタンの番号が分かったら
+ros2 launch rabbits_bringup gamma_sim.launch.py gamepad:=onefun_ps4   # WSL2 + Onefun の PS4 互換機（背面ボタン付き）
 
 # 実機で
 ros2 launch rabbits_bringup gamma.launch.py device:=/dev/ttyUSB0
@@ -28,8 +28,9 @@ ros2 launch rabbits_bringup gamma.launch.py device:=/dev/ttyTHS1 rviz:=true   # 
 | `input` | `gamepad` | `gamepad`（joy_linux + gamepad_node）/ `game_client` / `none` |
 | `rviz` | sim: `true`、実機: `false` | rviz2（実機では robot_state_publisher も）を起動する |
 | `link_path`（sim） | `/tmp/gamma_fake` | 偽ファームの pty へのリンク。bridge の `device` に渡す |
+| `follow_neck_pitch_roll`（sim） | `false` | 偽ファームが首の Pitch / Roll を指令に追従させる（確認用。実機のファームは機構決定まで送らない） |
 | `device`（実機） | `/dev/ttyUSB0` | ファームのシリアル |
-| `lean_left_button` / `lean_right_button` | `-1` | gamepad のリーン（背面ボタンの番号。-1 = 無し） |
+| `gamepad` | `dualshock4` | 軸とボタンの番号の組（rabbits_interface の `config/gamepad/<名前>.yaml`。`onefun_ps4` など） |
 
 `gamma_sim.launch.py` は偽ファームがリンクを作るのを待つため、robot_bridge を 1 秒遅らせて起動する。偽ファームを再起動したら launch 全体を再起動する（bridge だけの再起動は可）。
 

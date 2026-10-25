@@ -33,8 +33,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'rviz', default_value='false',
             description='robot_state_publisher と rviz2 も起動してモデルを見る'),
-        DeclareLaunchArgument('lean_left_button', default_value='-1'),
-        DeclareLaunchArgument('lean_right_button', default_value='-1'),
+        DeclareLaunchArgument('gamepad', default_value='dualshock4'),
     ]
     input_is = {name: IfCondition(EqualsSubstitution(LaunchConfiguration('input'), name))
                 for name in ('gamepad', 'game_client')}
@@ -69,10 +68,7 @@ def generate_launch_description():
 
     gamepad = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(interface_launch, 'gamepad.launch.py')),
-        launch_arguments={
-            'lean_left_button': LaunchConfiguration('lean_left_button'),
-            'lean_right_button': LaunchConfiguration('lean_right_button'),
-        }.items(),
+        launch_arguments={'gamepad': LaunchConfiguration('gamepad')}.items(),
         condition=input_is['gamepad'],
     )
     game_client = IncludeLaunchDescription(

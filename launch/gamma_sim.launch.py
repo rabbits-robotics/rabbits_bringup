@@ -38,11 +38,11 @@ def generate_launch_description():
             'link_path', default_value='/tmp/gamma_fake',
             description='偽ファームの pty へのシンボリックリンク（robot_bridge の device）'),
         DeclareLaunchArgument(
-            'lean_left_button', default_value='-1',
-            description='gamepad: リーン左のボタン番号（背面ボタン。-1 = 無し）'),
+            'follow_neck_pitch_roll', default_value='false',
+            description='偽ファームが首の Pitch / Roll を指令に追従させる（確認用。実機のファームは送らない）'),
         DeclareLaunchArgument(
-            'lean_right_button', default_value='-1',
-            description='gamepad: リーン右のボタン番号（背面ボタン。-1 = 無し）'),
+            'gamepad', default_value='dualshock4',
+            description='gamepad の軸とボタンの番号の組（rabbits_interface の config/gamepad/<名前>.yaml）'),
     ]
     input_is = {name: IfCondition(EqualsSubstitution(LaunchConfiguration('input'), name))
                 for name in ('gamepad', 'game_client')}
@@ -52,7 +52,10 @@ def generate_launch_description():
         executable='gamma_fake_node',
         name='gamma_fake_node',
         output='screen',
-        parameters=[sim_config, {'link_path': LaunchConfiguration('link_path')}],
+        parameters=[sim_config, {
+            'link_path': LaunchConfiguration('link_path'),
+            'follow_neck_pitch_roll': LaunchConfiguration('follow_neck_pitch_roll'),
+        }],
     )
 
     # 偽ファームが終わったら（設定不足、pty の失敗、Ctrl-C）全体を落とす。bridge だけが残って別のエラーを出さないように
@@ -94,10 +97,7 @@ def generate_launch_description():
 
     gamepad = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(interface_launch, 'gamepad.launch.py')),
-        launch_arguments={
-            'lean_left_button': LaunchConfiguration('lean_left_button'),
-            'lean_right_button': LaunchConfiguration('lean_right_button'),
-        }.items(),
+        launch_arguments={'gamepad': LaunchConfiguration('gamepad')}.items(),
         condition=input_is['gamepad'],
     )
     game_client = IncludeLaunchDescription(
