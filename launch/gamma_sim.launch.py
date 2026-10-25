@@ -25,6 +25,8 @@ def generate_launch_description():
         get_package_share_directory('rabbits_bridge'), 'config', 'gamma.yaml')
     sim_config = os.path.join(
         get_package_share_directory('rabbits_sim'), 'config', 'gamma.yaml')
+    linkage_config = os.path.join(
+        get_package_share_directory('rabbits_description'), 'config', 'gamma_linkage.yaml')
     interface_launch = os.path.join(
         get_package_share_directory('rabbits_interface'), 'launch')
 
@@ -52,7 +54,7 @@ def generate_launch_description():
         executable='gamma_fake_node',
         name='gamma_fake_node',
         output='screen',
-        parameters=[sim_config, {
+        parameters=[sim_config, linkage_config, {
             'link_path': LaunchConfiguration('link_path'),
             'follow_neck_pitch_roll': LaunchConfiguration('follow_neck_pitch_roll'),
         }],
@@ -73,7 +75,17 @@ def generate_launch_description():
             name='robot_bridge',
             output='screen',
             parameters=[bridge_config, {'device': LaunchConfiguration('link_path')}],
+            remappings=[('joint_states', 'motor_joint_states')],  # ミキサーが派生関節を足して joint_states へ
         )],
+    )
+
+    # 脚リンクの派生関節（バー・連結リンク）を足すミキサー。/joint_states の発行元はこれだけ
+    linkage_node = Node(
+        package='rabbits_description',
+        executable='linkage_state_publisher',
+        name='linkage_state_publisher',
+        output='screen',
+        parameters=[linkage_config],
     )
 
     xacro_path = PathJoinSubstitution([
@@ -106,5 +118,5 @@ def generate_launch_description():
     )
 
     return LaunchDescription(
-        args + [fake_node, stop_on_fake_exit, bridge_node, robot_state_publisher, rviz_node,
-                gamepad, game_client])
+        args + [fake_node, stop_on_fake_exit, bridge_node, linkage_node, robot_state_publisher,
+                rviz_node, gamepad, game_client])

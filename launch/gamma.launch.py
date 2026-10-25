@@ -8,7 +8,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     Command, EqualsSubstitution, FindExecutable, LaunchConfiguration, PathJoinSubstitution)
@@ -39,12 +39,35 @@ def generate_launch_description():
                 for name in ('gamepad', 'game_client')}
     with_rviz = IfCondition(LaunchConfiguration('rviz'))
 
+    linkage_config = os.path.join(
+        get_package_share_directory('rabbits_description'), 'config', 'gamma_linkage.yaml')
+
+    # rviz 無し: bridge が joint_states を直接出す
     bridge_node = Node(
         package='rabbits_bridge',
         executable='robot_bridge_node',
         name='robot_bridge',
         output='screen',
         parameters=[bridge_config, {'device': LaunchConfiguration('device')}],
+        condition=UnlessCondition(LaunchConfiguration('rviz')),
+    )
+    # rviz あり: bridge → motor_joint_states → ミキサー（脚リンクの派生関節を足す）→ joint_states
+    bridge_node_for_rviz = Node(
+        package='rabbits_bridge',
+        executable='robot_bridge_node',
+        name='robot_bridge',
+        output='screen',
+        parameters=[bridge_config, {'device': LaunchConfiguration('device')}],
+        remappings=[('joint_states', 'motor_joint_states')],
+        condition=with_rviz,
+    )
+    linkage_node = Node(
+        package='rabbits_description',
+        executable='linkage_state_publisher',
+        name='linkage_state_publisher',
+        output='screen',
+        parameters=[linkage_config],
+        condition=with_rviz,
     )
 
     xacro_path = PathJoinSubstitution([
@@ -77,4 +100,5 @@ def generate_launch_description():
     )
 
     return LaunchDescription(
-        args + [bridge_node, robot_state_publisher, rviz_node, gamepad, game_client])
+        args + [bridge_node, bridge_node_for_rviz, linkage_node, robot_state_publisher, rviz_node,
+                gamepad, game_client])

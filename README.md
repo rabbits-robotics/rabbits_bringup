@@ -6,8 +6,8 @@
 
 | launch | 内容 |
 |---|---|
-| `gamma_sim.launch.py` | **実機なし**。偽ファーム（rabbits_sim）→ robot_bridge（device = pty のリンク）→ robot_state_publisher（gamma の URDF）→ rviz。操作は gamepad または game_client。PC 側が作る指令をモデルの関節の動きで確かめる |
-| `gamma.launch.py` | **実機**。robot_bridge（実機のシリアル）+ 操作ノード。`rviz:=true` でモデルも見る。sim との違いは device だけ |
+| `gamma_sim.launch.py` | **実機なし**。偽ファーム（rabbits_sim）→ robot_bridge（device = pty のリンク）→ linkage_state_publisher（脚リンクの派生関節を足すミキサー。`/joint_states` の発行元はこれだけ）→ robot_state_publisher（gamma の URDF）→ rviz。操作は gamepad または game_client。PC 側が作る指令をモデルの関節の動きで確かめる |
+| `gamma.launch.py` | **実機**。robot_bridge（実機のシリアル）+ 操作ノード。`rviz:=true` でミキサー + robot_state_publisher + rviz も起動（bridge の出力は `motor_joint_states` にリマップ）。`rviz:=false` では bridge が `joint_states` を直接出す |
 
 ```bash
 # 偽ファームで（Dev Container 内。ゲームパッドは usbipd で WSL に渡す。rabbits_ws の README 参照）
